@@ -25,5 +25,6 @@ public class Contagem{
       }
       System.out.println(cont + 1); //imprime o numero de palavras. Cont comeca com 0, por isso +1
     }
+    sc.close();
   }
 }

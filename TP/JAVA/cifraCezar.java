@@ -10,16 +10,15 @@ public class cifraCezar{
 	public static void main(String[] args){
 		Scanner sc = new Scanner(System.in);
 		String frase = new String();
-		String codigo = new String();
-		int tam, cont, contAux, tabela;
+		int tam, cont, tabela;
 		char cifra;
 		
 
 		while(sc.hasNext()){ //loop enquanto possui palavra no arquivo
-		  cont = 0;
+		  	cont = 0;
 			frase = sc.nextLine();
-      tam = frase.length();
-      char[] aux = new char[tam];
+      		tam = frase.length();
+      		char[] aux = new char[tam];
       
 			if ((frase.length() == 3) && (frase.charAt(0) == 'F') && (frase.charAt(1) == 'I') && (frase.charAt(2) == 'M')){ //acaba programa se receber a palavra FIM
 				sc.close();

@@ -34,6 +34,7 @@ public class PalindromoRecursivo{
       tam = frase.length();
       palindromo(frase, 0, tam - 1);   //chama o metodo recursivo 
     }
+    sc.close();
   }
 }
 
