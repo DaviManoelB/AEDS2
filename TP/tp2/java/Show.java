@@ -17,7 +17,7 @@ class Show{
     private String[] listed_in;
 
     //CONTRUTOR VAZIO
-    public Show(){
+    public Show(){ //incializa os atributos
         this.show_id = "";
         this.type = "";
         this.title = "";
@@ -32,7 +32,7 @@ class Show{
     }
     //CONTRUTOR COM PARAMETROS
     public Show(String show_id, String type, String title, String director, String[] cast, String country, Date date_added, int release_year, String rating, String duration, String[] listed_in){
-        this.show_id = show_id;
+        this.show_id = show_id; //inicializa os atributos com os valores determinados
         this.type = type;
         this.title = title;
         this.director = director;
@@ -46,7 +46,7 @@ class Show{
     }
 
     //GETTERS
-    public String getShowId(){return show_id;}
+    public String getShowId(){return show_id;} //serve para manipluar os atributos. Como estao como private, precisa de get e set para acessar
     public String gettype(){return type;}
     public String gettitle(){return title;}
     public String getdirector(){return director;}
@@ -59,6 +59,7 @@ class Show{
     public String[] getListedIn(){return listed_in;}
 
     //SETTERS
+    
     public void setshow_id(String show_id) { this.show_id = show_id; }
     public void settype(String type) { this.type = type; }
     public void settitle(String title) { this.title = title; }
@@ -70,6 +71,7 @@ class Show{
     public void setrating(String rating) { this.rating = rating; }
     public void setduration(String duration) { this.duration = duration; }
     public void setlisted_in(String[] listed_in) { this.listed_in = listed_in; }
+    
 
 
     //CLONE
@@ -114,94 +116,94 @@ class Show{
 
 
     //Ler
-    public void ler(String linha) {
+    public static void ler(String[] args) throws Exception{
+        
+        String[] resp = new String[12];
+        String filme = new String ();
+        //Scanner sc = new Scanner(new File("./tmp/disneyplus.csv"));
+        Scanner sc = new Scanner(new File("./disneyplus.csv"));
+        String cabecalho = sc.nextLine(); //pega o cabecalho
+        while ((sc.hasNext())) {
+            filme = sc.nextLine();
+            int cFilme = 0, cResp = 0;
+            for(int i = 0; i < resp.length; i++){
+                resp[i] = ""; //inicializa as string resp para vazio
+            }
+
+            while(cResp < 11){
+                char ch = filme.charAt(cFilme);
+                if(ch == '"'){ //se for uma aspas ignora a virgula no meio e le ate a proxima aspas
+                    cFilme++;
+                    while(filme.charAt(cFilme) != '"'){
+                        ch = filme.charAt(cFilme);
+                        resp[cResp] += ch;
+                        cFilme++;
+                        
+                    }
+                    cFilme++; cResp++;
+                    
+                }else if(ch == ','){ // se for uma virgula que aparece dps de outra virgula, cadastra NaN em resp
+                    resp[cResp] = "NaN";
+                    cResp++; cFilme++;
+                }else{
+                    while(filme.charAt(cFilme) != ','){ //le enquanto nao acha uma virgula. Quando acha, já pula pro prox char. Por isso o elseIf de cima verifica se foi virgula dupla
+                        ch = filme.charAt(cFilme);
+                        resp[cResp] += ch;
+                        cFilme++;
+                    }
+                }   
+            }          
+        }
+        System.out.println(resp[1]);
+    }
+
+
+    public static void main(String[] args) {
+        /*
+        Scanner sc = new Scanner(System.in);
+        List<String> idsEntrada = new ArrayList<>();
+
+        while (true) {
+            String entrada = sc.nextLine();
+            if (entrada.equals("FIM")) break;
+            idsEntrada.add(entrada);
+        }
+
+        Map<String, String> mapaCSV = new HashMap<>();
         try {
-            // Divide por vírgula, mas mantendo vírgulas internas em aspas
-            List<String> campos = new ArrayList<>();
-            boolean aspas = false;
-            StringBuilder campoAtual = new StringBuilder();
-            for (char c : linha.toCharArray()) {
-                if (c == '\"') aspas = !aspas;
-                else if (c == ',' && !aspas) {
-                    campos.add(campoAtual.toString().trim());
-                    campoAtual.setLength(0);
-                } else {
-                    campoAtual.append(c);
+            BufferedReader br = new BufferedReader(new FileReader("/tmp/disneyplus.csv"));
+            String linha;
+            br.readLine(); // pula cabeçalho
+            while ((linha = br.readLine()) != null) {
+                String[] partes = linha.split(",", 2);
+                if (partes.length > 1) {
+                    mapaCSV.put(partes[0].trim(), linha);
                 }
             }
-            campos.add(campoAtual.toString().trim());
-
-            this.show_id = getOuNaN(campos, 0);
-            this.type = getOuNaN(campos, 1);
-            this.title = getOuNaN(campos, 2);
-            this.director = getOuNaN(campos, 3);
-
-            String castStr = getOuNaN(campos, 4);
-            this.cast = castStr.equals("NaN") ? new String[0] : castStr.split(",\\s*");
-
-            this.country = getOuNaN(campos, 5);
-            this.date_added = converterParaDate(getOuNaN(campos, 6));
-
-            String ano = getOuNaN(campos, 7);
-            this.release_year = ano.equals("NaN") ? -1 : Integer.parseInt(ano);
-
-            this.rating = getOuNaN(campos, 8);
-            this.duration = getOuNaN(campos, 9);
-
-            String listedInStr = getOuNaN(campos, 10);
-            this.listed_in = listedInStr.equals("NaN") ? new String[0] : listedInStr.split(",\\s*");
-
-            ordenarListas();
-        } catch (Exception e) {
-            System.out.println("Erro ao ler linha: " + linha);
-            e.printStackTrace();
+            br.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao ler o arquivo: " + e.getMessage());
+            sc.close();
+            return;
         }
-    }
 
-    private String getOuNaN(List<String> campos, int index) {
-        if (index >= campos.size() || campos.get(index).trim().isEmpty()) return "NaN";
-        return campos.get(index).replace("\"", "").trim();
-    }
-
-
-public static void main(String[] args) {
-    Scanner sc = new Scanner(System.in);
-    List<String> idsEntrada = new ArrayList<>();
-
-    while (true) {
-        String entrada = sc.nextLine();
-        if (entrada.equals("FIM")) break;
-        idsEntrada.add(entrada);
-    }
-
-    Map<String, String> mapaCSV = new HashMap<>();
-    try {
-        BufferedReader br = new BufferedReader(new FileReader("/tmp/disneyplus.csv"));
-        String linha;
-        br.readLine(); // pula cabeçalho
-        while ((linha = br.readLine()) != null) {
-            String[] partes = linha.split(",", 2);
-            if (partes.length > 1) {
-                mapaCSV.put(partes[0].trim(), linha);
+        for (String id : idsEntrada) {
+            if (mapaCSV.containsKey(id)) {
+                Show s = new Show();
+                s.ler(mapaCSV.get(id));
+                s.imprimir();
+            } else {
+                System.out.println("ID " + id + " não encontrado.");
             }
         }
-        br.close();
-    } catch (IOException e) {
-        System.out.println("Erro ao ler o arquivo: " + e.getMessage());
+
         sc.close();
-        return;
+        */
+        // Teste do método ler
+        try {
+            ler(args);
+        } catch (Exception e) {
+            System.out.println("Erro ao ler o arquivo: " + e.getMessage());
+        }  
     }
-
-    for (String id : idsEntrada) {
-        if (mapaCSV.containsKey(id)) {
-            Show s = new Show();
-            s.ler(mapaCSV.get(id));
-            s.imprimir();
-        } else {
-            System.out.println("ID " + id + " não encontrado.");
-        }
-    }
-
-    sc.close();
-}
 }
