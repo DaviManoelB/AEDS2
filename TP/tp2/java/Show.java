@@ -126,8 +126,8 @@ class Show{
         Scanner sc = new Scanner(new File("../disneyplus.csv"));
         String cabecalho = sc.nextLine(); //pega o cabecalho
         while ((sc.hasNext())) {
-            filme = sc.nextLine();
-            int cFilme = 0, cResp = 0;
+            filme = sc.nextLine(); //le a linha de disneyplus.csv
+            int cFilme = 0, cResp = 0; //cFilme controla o char da frase do arquivo csv e cResp controla o char na string a ser cadastrada
             for(int i = 0; i < resp.length; i++){
                 resp[i] = ""; //inicializa as string resp para vazio
             }
@@ -140,7 +140,6 @@ class Show{
                         ch = filme.charAt(cFilme);
                         resp[cResp] += ch;
                         cFilme++;
-                        
                     }
                     cFilme++; cResp++;
                     
@@ -153,10 +152,16 @@ class Show{
                         resp[cResp] += ch;
                         cFilme++;
                     }
-                }   
+                }
+                cFilme++; //pula a virgula
+                cResp++;   
             }          
         }
-        System.out.println(resp[1]);
+        System.out.println(filme);
+        for(int i = 0; i < resp.length; i++){
+            System.out.println(resp[i]);
+        }
+        
     }
 
 
