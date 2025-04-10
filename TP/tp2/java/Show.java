@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.text.*;
 import java.util.*;
@@ -75,6 +76,7 @@ class Show{
 
 
     //CLONE
+    @Override
     public Show clone(){
         Show clone = new Show();
         clone.show_id = this.show_id;
@@ -121,7 +123,7 @@ class Show{
         String[] resp = new String[12];
         String filme = new String ();
         //Scanner sc = new Scanner(new File("./tmp/disneyplus.csv"));
-        Scanner sc = new Scanner(new File("./disneyplus.csv"));
+        Scanner sc = new Scanner(new File("../disneyplus.csv"));
         String cabecalho = sc.nextLine(); //pega o cabecalho
         while ((sc.hasNext())) {
             filme = sc.nextLine();
