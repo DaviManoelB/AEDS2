@@ -95,8 +95,24 @@ class Show{
 
     //--------------------------------------------------------IMPRIMIR--------------------------------------------------------
     public void imprimir(Show tabela){
-        System.out.println("=> " + tabela.show_id + " ## "+ tabela.title + " ## " + tabela.type + " ## " + tabela.director + " ##  ["+ tabela.cast +
-         "] ## "+ tabela.country + " ## " + tabela.date_added + " ## " + tabela.release_year + " ## " + tabela.rating + " ## " + tabela.duration + " ## [" + tabela.listed_in + "] ##");
+        System.out.print("=> " + tabela.show_id + " ## "+ tabela.title + " ## " + tabela.type + " ## " + tabela.director + " ##  [");
+        for(int i = 0; i < tabela.cast.length; i++){
+            if(i == tabela.cast.length - 1){
+                System.out.print(tabela.cast[i]);
+            }else{
+                System.out.print(tabela.cast[i] + ", ");
+            }
+        }
+        System.out.print("] ## " + tabela.country + " ## " + tabela.date_added + " ## " + tabela.release_year + " ## " + tabela.rating + " ## " + tabela.duration + " ## [");
+        for(int i = 0; i < tabela.listed_in.length; i++){
+            if(i == tabela.listed_in.length - 1){
+                System.out.print(tabela.listed_in[i]);
+            }else{
+                System.out.print(tabela.listed_in[i] + ", ");
+            }
+        }
+        System.out.print("] ##");
+        System.out.println();
     }
 
 
@@ -119,14 +135,14 @@ class Show{
 
 
     //--------------------------------------------------------Ler-------------------------------------------------------
-    public static Show[] ler(String[] args) throws Exception{
+    public static Show[] ler() throws Exception{
         int cont = 1; //contador para o vetor tabela
         Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
         String[] resp = new String[12]; //cria array para cada categoria do show
         String filme = new String (); //cria String para ler cada linha do arquivo csv
 
-        //Scanner sc = new Scanner(new File("./tmp/disneyplus.csv"));
-        Scanner sc = new Scanner(new File("../disneyplus.csv"));
+        Scanner sc = new Scanner(new File("tmp/disneyplus.csv"));
+        //Scanner sc = new Scanner(new File("../disneyplus.csv"));
         String cabecalho = sc.nextLine(); //pega o cabecalho
 
 
@@ -137,8 +153,9 @@ class Show{
                 resp[i] = ""; //inicializa as string resp para vazio
             }
 
+            tabela[cont] = new Show(); //cria um novo objeto do tipo Show
             while(cResp < 11){
-                tabela[cont] = new Show(); //cria um novo objeto do tipo Show
+                
                 char ch = filme.charAt(cFilme);
                 if(ch == '"'){ //se for uma aspas ignora a virgula no meio e le ate a proxima aspas
                     cFilme++;
@@ -175,31 +192,41 @@ class Show{
             tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
             cont++; //adiciona +1 em cont         
         }
+        System.out.println(tabela[1].show_id);
         sc.close(); //fecha o scanner
         return tabela;
     }
 
 
+
+    //--------------------------------------------------------MAIN--------------------------------------------------------
+
+    //PARA FUNCIONAR TEM QUE VERIFICAR O CAMINHO DO ARQUVIVO disneyplus.csv (LN 145)
+
+
     public static void main(String[] args) {
+
         Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
         try {
-            tabela = ler(args);
+            
+            tabela = ler();
         } catch (Exception e) {
             System.out.println("Erro em usar o metodo ler");
             return;
         }
+       
         Scanner sc = new Scanner(System.in);
         String id = new String();
         while(sc.hasNext()){
             id = sc.nextLine(); //le o id a ser printado
-            
+           
             if(id.equals("FIM")) {
                 sc.close();
                 return; //se for FIM, para o loop
             }
             
             for (int i = 1; i < tabela.length; i++) {
-                if(id.equals(tabela[i].show_id)){ //se o id for igual ao id do vetor, imprime
+                if((tabela[i] != null) && (id.equals(tabela[i].show_id))){ //se o id for igual ao id do vetor, imprime. A primeira condicao serve para evitar  o erro 'NullPointerException'
                     tabela[i].imprimir(tabela[i]);
                 }
             }
