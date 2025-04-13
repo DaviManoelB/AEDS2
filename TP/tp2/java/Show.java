@@ -141,8 +141,8 @@ class Show{
         String[] resp = new String[12]; //cria array para cada categoria do show
         String filme = new String (); //cria String para ler cada linha do arquivo csv
 
-        Scanner sc = new Scanner(new File("/tmp/disneyplus.csv"));
-        //Scanner sc = new Scanner(new File("../disneyplus.csv"));
+        //Scanner sc = new Scanner(new File("/tmp/disneyplus.csv"));
+        Scanner sc = new Scanner(new File("../disneyplus.csv"));
         String cabecalho = sc.nextLine(); //pega o cabecalho
 
 
@@ -192,7 +192,6 @@ class Show{
             tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
             cont++; //adiciona +1 em cont         
         }
-        System.out.println(tabela[1].show_id);
         sc.close(); //fecha o scanner
         return tabela;
     }
