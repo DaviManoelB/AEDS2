@@ -1,6 +1,5 @@
 
 import java.io.*;
-import java.text.*;
 import java.util.*;
 
 class Show{
@@ -95,7 +94,7 @@ class Show{
 
     //--------------------------------------------------------IMPRIMIR--------------------------------------------------------
     public void imprimir(Show tabela){
-        System.out.print("=> " + tabela.show_id + " ## "+ tabela.title + " ## " + tabela.type + " ## " + tabela.director + " ##  [");
+        System.out.print("=> " + tabela.show_id + " ## "+ tabela.title + " ## " + tabela.type + " ## " + tabela.director + " ## [");
         for(int i = 0; i < tabela.cast.length; i++){
             if(i == tabela.cast.length - 1){
                 System.out.print(tabela.cast[i]);
@@ -122,18 +121,6 @@ class Show{
         Arrays.sort(listed_in);
     }
 
-    // CONVERTER String PARA Date
-    private Date converterParaDate(String dataStr) {
-        if (dataStr.equals("NaN")) return null;
-        try {
-            SimpleDateFormat formato = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
-            return formato.parse(dataStr);
-        } catch (ParseException e) {
-            return null;
-        }
-    }
-
-
     //--------------------------------------------------------Ler-------------------------------------------------------
     public static Show[] ler() throws Exception{
         int cont = 1; //contador para o vetor tabela
@@ -143,6 +130,7 @@ class Show{
 
         //Scanner sc = new Scanner(new File("/tmp/disneyplus.csv"));
         Scanner sc = new Scanner(new File("../disneyplus.csv"));
+        @SuppressWarnings("unused") //serve para ignorar warning de variavel sem usar. Tava bem chato
         String cabecalho = sc.nextLine(); //pega o cabecalho
 
 
@@ -154,7 +142,7 @@ class Show{
             }
 
             tabela[cont] = new Show(); //cria um novo objeto do tipo Show
-            while(cResp < 11){
+            while(cResp < 11){ 
                 
                 char ch = filme.charAt(cFilme);
                 if(ch == '"'){ //se for uma aspas ignora a virgula no meio e le ate a proxima aspas
@@ -190,6 +178,7 @@ class Show{
             tabela[cont].rating = resp[8];
             tabela[cont].duration = resp[9];
             tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
+            tabela[cont].ordenarListas(); //ordena as listas de atores e categorias
             cont++; //adiciona +1 em cont         
         }
         sc.close(); //fecha o scanner
@@ -227,6 +216,7 @@ class Show{
             for (int i = 1; i < tabela.length; i++) {
                 if((tabela[i] != null) && (id.equals(tabela[i].show_id))){ //se o id for igual ao id do vetor, imprime. A primeira condicao serve para evitar  o erro 'NullPointerException'
                     tabela[i].imprimir(tabela[i]);
+                    i = tabela.length; //para o loop
                 }
             }
         }
