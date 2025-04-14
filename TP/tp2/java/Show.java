@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.util.*;
 
@@ -128,9 +127,8 @@ class Show{
         String[] resp = new String[12]; //cria array para cada categoria do show
         String filme = new String (); //cria String para ler cada linha do arquivo csv
 
-        //Scanner sc = new Scanner(new File("/tmp/disneyplus.csv"));
-        Scanner sc = new Scanner(new File("../disneyplus.csv"));
-        @SuppressWarnings("unused") //serve para ignorar warning de variavel sem usar. Tava bem chato
+        Scanner sc = new Scanner(new File("/tmp/disneyplus.csv"));
+        //Scanner sc = new Scanner(new File("../disneyplus.csv"));
         String cabecalho = sc.nextLine(); //pega o cabecalho
 
 
@@ -166,6 +164,26 @@ class Show{
                     cFilme++; cResp++; 
                 }           
             } 
+            try {//-----------atribui o valor do vetor resp na tabela-------------
+                tabela[cont].show_id = resp[0]; 
+                tabela[cont].type = resp[1];
+                tabela[cont].title = resp[2];
+                tabela[cont].director = resp[3];
+                tabela[cont].cast = resp[4].split( ","); //separa os atores por virgula
+                tabela[cont].country = resp[5]; 
+                tabela[cont].date_added = resp[6].equals("Nan")? tabela[cont].date_added = "Nan" : (resp[6]); //converte a data para o formato correto
+                tabela[cont].release_year = (resp[7].equals("Nan") || resp[7].isEmpty()) ? 0 : Integer.parseInt(resp[7]); //transofrma a string em inteiro
+                tabela[cont].rating = resp[8];
+                tabela[cont].duration = resp[9];
+                tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
+                tabela[cont].ordenarListas(); //ordena as listas de atores e categorias
+                cont++; //adiciona +1 em cont 
+                
+            } catch (Exception e) {
+
+                System.out.println("Erro atribuicao");
+            }
+            /* 
             //-----------atribui o valor do vetor resp na tabela-------------
             tabela[cont].show_id = resp[0]; 
             tabela[cont].type = resp[1];
@@ -179,7 +197,8 @@ class Show{
             tabela[cont].duration = resp[9];
             tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
             tabela[cont].ordenarListas(); //ordena as listas de atores e categorias
-            cont++; //adiciona +1 em cont         
+            cont++; //adiciona +1 em cont  
+            */       
         }
         sc.close(); //fecha o scanner
         return tabela;
