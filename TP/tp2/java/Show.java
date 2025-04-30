@@ -120,97 +120,72 @@ class Show{
         Arrays.sort(listed_in);
     }
 
-    //--------------------------------------------------------Ler-------------------------------------------------------
-    public static Show[] ler() throws Exception{
-        int cont = 1; //contador para o vetor tabela
-        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
-        String[] resp = new String[12]; //cria array para cada categoria do show
-        String filme = new String (); //cria String para ler cada linha do arquivo csv
-
-        Scanner sc = new Scanner(new File("/tmp/disneyplus.csv"));
-        //Scanner sc = new Scanner(new File("../disneyplus.csv"));
-        String cabecalho = sc.nextLine(); //pega o cabecalho
-
-
-        while ((sc.hasNext())) {
-            filme = sc.nextLine(); //le a linha de disneyplus.csv
-            int cFilme = 0, cResp = 0; //cFilme controla o char da frase do arquivo csv e cResp controla o char na string a ser cadastrada
-            for(int i = 0; i < resp.length; i++){
-                resp[i] = ""; //inicializa as string resp para vazio
+    public static void ordenarTitulos(Show[] tabela) {
+        Show tmp;
+        for(int i = 0; i < tabela.length; i++) {
+            for(int j = i + 1; j < tabela.length; j++) {
+                if(tabela[i].title.toLowerCase().compareTo(tabela[j].title.toLowerCase()) > 0) {
+                    tmp = tabela[i];
+                    tabela[i] = tabela[j];
+                    tabela[j] = tmp;
+                }
             }
-
-            tabela[cont] = new Show(); //cria um novo objeto do tipo Show
-            while(cResp < 11){ 
-                
-                char ch = filme.charAt(cFilme);
-                if(ch == '"'){ //se for uma aspas ignora a virgula no meio e le ate a proxima aspas
-                    cFilme++;
-                    while(filme.charAt(cFilme) != '"'){
-                        ch = filme.charAt(cFilme);
-                        resp[cResp] += ch;
-                        cFilme++;
-                    }
-                    cFilme+=2; cResp++;
-                    
-                }else if(ch == ','){ // se for uma virgula que aparece dps de outra virgula, cadastra NaN em resp
-                    resp[cResp] = "NaN";
-                    cFilme++; cResp++; 
-                }else{
-                    while(filme.charAt(cFilme) != ','){ //le enquanto nao acha uma virgula. Quando acha, já pula pro prox char. Por isso o elseIf de cima verifica se foi virgula dupla
-                        ch = filme.charAt(cFilme);
-                        resp[cResp] += ch;
-                        cFilme++;
-                    }
-                    cFilme++; cResp++; 
-                }           
-            } 
-            try {//-----------atribui o valor do vetor resp na tabela-------------
-                tabela[cont].show_id = resp[0]; 
-                tabela[cont].type = resp[1];
-                tabela[cont].title = resp[2];
-                tabela[cont].director = resp[3];
-                tabela[cont].cast = resp[4].split( ","); //separa os atores por virgula
-                tabela[cont].country = resp[5]; 
-                tabela[cont].date_added = resp[6].equals("Nan")? tabela[cont].date_added = "Nan" : (resp[6]); //converte a data para o formato correto
-                tabela[cont].release_year = (resp[7].equals("Nan") || resp[7].isEmpty()) ? 0 : Integer.parseInt(resp[7]); //transofrma a string em inteiro
-                tabela[cont].rating = resp[8];
-                tabela[cont].duration = resp[9];
-                tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
-                tabela[cont].ordenarListas(); //ordena as listas de atores e categorias
-                cont++; //adiciona +1 em cont 
-                
-            } catch (Exception e) {
-
-                System.out.println("Erro atribuicao");
-            }
-            /* 
-            //-----------atribui o valor do vetor resp na tabela-------------
-            tabela[cont].show_id = resp[0]; 
-            tabela[cont].type = resp[1];
-            tabela[cont].title = resp[2];
-            tabela[cont].director = resp[3];
-            tabela[cont].cast = resp[4].split( ","); //separa os atores por virgula
-            tabela[cont].country = resp[5]; 
-            tabela[cont].date_added = resp[6].equals("Nan")? tabela[cont].date_added = "Nan" : (resp[6]); //converte a data para o formato correto
-            tabela[cont].release_year = (resp[7].equals("Nan") || resp[7].isEmpty()) ? 0 : Integer.parseInt(resp[7]); //transofrma a string em inteiro
-            tabela[cont].rating = resp[8];
-            tabela[cont].duration = resp[9];
-            tabela[cont].listed_in = resp[10].equals("Nan")? null : resp[10].split(","); //se for NaN, atribui NaN, senao separa por virgula
-            tabela[cont].ordenarListas(); //ordena as listas de atores e categorias
-            cont++; //adiciona +1 em cont  
-            */       
         }
-        sc.close(); //fecha o scanner
-        return tabela;
     }
 
-
+    //--------------------------------------------------------Ler-------------------------------------------------------
+    public static Show[] ler() throws Exception {
+        List<Show> lista = new ArrayList<>();
+    
+        Scanner sc = null;
+        try {
+            sc = new Scanner(new File("/tmp/disneyplus.csv"));
+        } catch (Exception e) {
+            sc = new Scanner(new File("../disneyplus.csv"));
+        }
+    
+        String cabecalho = sc.nextLine(); // pula cabeçalho
+    
+        while (sc.hasNextLine()) {
+            String linha = sc.nextLine();
+    
+            // Expressão para separar campos corretamente, mesmo com vírgulas entre aspas
+            String[] campos = linha.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+            for (int i = 0; i < campos.length; i++) {
+                campos[i] = campos[i].replaceAll("^\"|\"$", "").trim();
+            }
+    
+            if (campos.length < 11) continue; // ignora linhas incompletas
+    
+            // Substituições para campos vazios
+            String show_id = campos[0].isEmpty() ? "NaN" : campos[0];
+            String type = campos[1].isEmpty() ? "NaN" : campos[1];
+            String title = campos[2].isEmpty() ? "NaN" : campos[2];
+            String director = campos[3].isEmpty() ? "NaN" : campos[3];
+            String[] cast = campos[4].isEmpty() ? new String[] {"NaN"} : campos[4].split(",\\s*");
+            String country = campos[5].isEmpty() ? "NaN" : campos[5];
+            String date_added = campos[6].isEmpty() ? "NaN" : campos[6];
+            int release_year = (campos[7].isEmpty()) ? 0 : Integer.parseInt(campos[7]);
+            String rating = campos[8].isEmpty() ? "NaN" : campos[8];
+            String duration = campos[9].isEmpty() ? "NaN" : campos[9];
+            String[] listed_in = campos[10].isEmpty() ? new String[] {"NaN"} : campos[10].split(",\\s*");
+    
+            // Cria o objeto Show
+            Show s = new Show(show_id, type, title, director, cast, country, date_added, release_year, rating, duration, listed_in);
+            s.ordenarListas();
+    
+            lista.add(s);
+        }
+    
+        sc.close();
+        return lista.toArray(new Show[0]);
+    }
+    
 
     //--------------------------------------------------------MAIN--------------------------------------------------------
 
-    //PARA FUNCIONAR TEM QUE VERIFICAR O CAMINHO DO ARQUVIVO disneyplus.csv (LN 145)
-
-
+//region mainQ1
+    /*
     public static void main(String[] args) {
 
         Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
@@ -241,4 +216,133 @@ class Show{
         }
         sc.close(); 
     }
+     */
+//endregion
+
+//region mainQ3 
+/* 
+public static void main(String[] args) {
+        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+        String[] nomes = new String[tabela.length];
+        String titulo = new String();
+        int cont = 0,aux = 0, comparacoes = 0;
+        long inicio = System.nanoTime();
+
+
+        try {
+            
+            tabela = ler();
+        } catch (Exception e) {
+            System.out.println("Erro em usar o metodo ler");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String id = new String();
+        String linha = sc.nextLine();
+
+        while(!linha.equals("FIM")){
+            id = linha;
+            for(int i = 0; i < tabela.length; i++){
+                comparacoes++;
+                if(tabela[i] != null && id.equals(tabela[i].show_id)){
+                    cont++;
+                    nomes[cont] = tabela[i].title;
+                    i = 1370;
+                }
+            }
+            linha = sc.nextLine();
+        }
+        linha = sc.nextLine();
+        System.out.println("NAO"); //nao tava saindo 100% sem isso nem no privado nem no publico no verde
+        while(!linha.equals("FIM")){
+            titulo = linha;
+            for(int i = 0; i < cont; i++){
+                if(titulo.equals(nomes[i])){
+                    System.out.println("SIM");
+                    aux = 1;
+                    i = cont;
+                }
+            }
+            if(aux == 0){
+                System.out.println("NAO");
+            }
+            aux = 0;
+            linha = sc.nextLine();
+        }
+        cont = 0;
+        sc.close();
+        long fim = System.nanoTime();
+        double tempo = (fim - inicio) / 1e6; // tempo em milissegundos
+
+        // Criar arquivo de log
+        try {
+            PrintWriter log = new PrintWriter("865235_sequencial.txt");
+            log.printf("865235\t%.3f\t%d\n", tempo, comparacoes);
+            log.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao escrever o log");
+        }
+    }
+        */
+//endregion
+
+//region mainQ5
+/**/
+public static void main(String[] args) {
+
+    Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+    long inicio = System.nanoTime();
+    int comparacoes = 0, aux = 0;
+
+    try {
+        tabela = ler();
+    } catch (Exception e) {
+        System.out.println("Erro em usar o metodo ler");
+        return;
+    }
+
+    Scanner sc = new Scanner(System.in);
+    String id = new String();
+    Show[] tabela2 = new Show[tabela.length];
+
+    while(sc.hasNext()){
+        id = sc.nextLine(); //le o id a ser printado
+
+        if(id.equals("FIM")) {
+            sc.close();
+            break; // fim do loop
+        }
+
+        for (int i = 0; i < tabela.length; i++) {
+            comparacoes++;
+            if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
+                tabela2[aux] = tabela[i].clone();
+                aux++;
+                i = tabela.length; 
+            }
+        }
+    }
+
+    // Copia apenas os elementos válidos para ordenar e imprimir
+    Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
+    ordenarTitulos(tabelaOrdenada);
+    for (int i = 0; i < tabelaOrdenada.length; i++) {
+        tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+    }
+
+    long fim = System.nanoTime();
+    double tempo = (fim - inicio) / 1e6; // tempo em milissegundos
+
+    // Criar arquivo de log
+    try {
+        PrintWriter log = new PrintWriter("865235_sequencial.txt");
+        log.printf("865235\t%.3f\t%d\n", tempo, comparacoes);
+        log.close();
+    } catch (IOException e) {
+        System.out.println("Erro ao escrever o log");
+    }
+}
+
+//endregion
 }
