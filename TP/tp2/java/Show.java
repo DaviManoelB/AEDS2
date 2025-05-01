@@ -16,6 +16,7 @@ class Show{
     private String[] listed_in;
 
     //--------------------------------------------------------CONTRUTOR VAZIO--------------------------------------------------------
+//region
     public Show(){ //incializa os atributos
         this.show_id = "";
         this.type = "";
@@ -29,7 +30,10 @@ class Show{
         this.duration = "";
         this.listed_in = new String[0];
     }
+//endregion
+
     //--------------------------------------------------------CONTRUTOR COM PARAMETROS--------------------------------------------------------
+//region
     public Show(String show_id, String type, String title, String director, String[] cast, String country, String date_added, int release_year, String rating, String duration, String[] listed_in){
         this.show_id = show_id; //inicializa os atributos com os valores determinados
         this.type = type;
@@ -43,8 +47,10 @@ class Show{
         this.duration = duration;
         this.listed_in = listed_in;
     }
+//endregion
 
     //--------------------------------------------------------GETTERS--------------------------------------------------------
+//region
     public String getShowId(){return show_id;} //serve para manipluar os atributos. Como estao como private, precisa de get e set para acessar
     public String gettype(){return type;}
     public String gettitle(){return title;}
@@ -56,8 +62,10 @@ class Show{
     public String getrating(){return rating;}
     public String getduration(){return duration;}
     public String[] getListedIn(){return listed_in;}
+//endregion
 
     //--------------------------------------------------------SETTERS--------------------------------------------------------
+//region
     
     public void setshow_id(String show_id) { this.show_id = show_id; }
     public void settype(String type) { this.type = type; }
@@ -71,9 +79,10 @@ class Show{
     public void setduration(String duration) { this.duration = duration; }
     public void setlisted_in(String[] listed_in) { this.listed_in = listed_in; }
     
-
+//endregion
 
     //--------------------------------------------------------CLONE--------------------------------------------------------
+//region
     @Override
     public Show clone(){
         Show clone = new Show();
@@ -90,8 +99,10 @@ class Show{
         clone.listed_in = this.listed_in.clone();
         return clone;
     }
+//endregion
 
     //--------------------------------------------------------IMPRIMIR--------------------------------------------------------
+//region
     public void imprimir(Show tabela){
         System.out.print("=> " + tabela.show_id + " ## "+ tabela.title + " ## " + tabela.type + " ## " + tabela.director + " ## [");
         for(int i = 0; i < tabela.cast.length; i++){
@@ -112,15 +123,16 @@ class Show{
         System.out.print("] ##");
         System.out.println();
     }
-
+//endregion
 
     //--------------------------------------------------------ORDENAR--------------------------------------------------------
+//region
     public void ordenarListas() {
         Arrays.sort(cast);
         Arrays.sort(listed_in);
     }
 
-    public static void ordenarTitulos(Show[] tabela) {
+    public static void ordenarTitulosSelecao(Show[] tabela) {
         Show tmp;
         for(int i = 0; i < tabela.length; i++) {
             for(int j = i + 1; j < tabela.length; j++) {
@@ -133,7 +145,24 @@ class Show{
         }
     }
 
+    public static void ordenarTituloInsercao(Show[] tabela) {
+        for(int i = 1; i < tabela.length; i++) {
+            Show tmp = tabela[i];
+            int j = i - 1;
+            while((j >= 0) && (tabela[j].type.toLowerCase().compareTo(tmp.type.toLowerCase()) > 0) || (j >= 0) &&
+            (tabela[j].type.toLowerCase().compareTo(tmp.type.toLowerCase()) == 0 && tabela[j].title.toLowerCase().compareTo(tmp.title.toLowerCase()) > 0)) {
+                
+                tabela[j + 1] = tabela[j];
+                j--;
+            }
+            tabela[j + 1] = tmp;
+        }
+    }
+
+//endregion
+
     //--------------------------------------------------------Ler-------------------------------------------------------
+//region
     public static Show[] ler() throws Exception {
         List<Show> lista = new ArrayList<>();
     
@@ -180,10 +209,9 @@ class Show{
         sc.close();
         return lista.toArray(new Show[0]);
     }
-    
+//endregion
 
     //--------------------------------------------------------MAIN--------------------------------------------------------
-
 //region mainQ1
     /*
     public static void main(String[] args) {
@@ -288,7 +316,124 @@ public static void main(String[] args) {
 //endregion
 
 //region mainQ5
-/**/
+/*
+    public static void main(String[] args) {
+
+        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+        long inicio = System.nanoTime();
+        int comparacoes = 0, aux = 0;
+
+        try {
+            tabela = ler();
+        } catch (Exception e) {
+            System.out.println("Erro em usar o metodo ler");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String id = new String();
+        Show[] tabela2 = new Show[tabela.length];
+
+        while(sc.hasNext()){
+            id = sc.nextLine(); //le o id a ser printado
+
+            if(id.equals("FIM")) {
+                sc.close();
+                break; // fim do loop
+            }
+
+            for (int i = 0; i < tabela.length; i++) {
+                comparacoes++;
+                if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
+                    tabela2[aux] = tabela[i].clone();
+                    aux++;
+                    i = tabela.length; 
+                }
+            }
+        }
+
+        // Copia apenas os elementos válidos para ordenar e imprimir
+        Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
+        ordenarTitulosSelecao(tabelaOrdenada);
+        for (int i = 0; i < tabelaOrdenada.length; i++) {
+            tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+        }
+
+        long fim = System.nanoTime();
+        double tempo = (fim - inicio) / 1e6; // tempo em milissegundos
+
+        // Criar arquivo de log
+        try {
+            PrintWriter log = new PrintWriter("865235_sequencial.txt");
+            log.printf("865235\t%.3f\t%d\n", tempo, comparacoes);
+            log.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao escrever o log");
+        }
+    }
+    */
+//endregion
+
+//region mainQ7
+/*
+    public static void main(String[] args) {
+
+        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+        long inicio = System.nanoTime();
+        int comparacoes = 0, aux = 0;
+
+        try {
+            tabela = ler();
+        } catch (Exception e) {
+            System.out.println("Erro em usar o metodo ler");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String id = new String();
+        Show[] tabela2 = new Show[tabela.length];
+
+        while(sc.hasNext()){
+            id = sc.nextLine(); //le o id a ser printado
+
+            if(id.equals("FIM")) {
+                sc.close();
+                break; // fim do loop
+            }
+
+            for (int i = 0; i < tabela.length; i++) {
+                comparacoes++;
+                if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
+                    tabela2[aux] = tabela[i].clone();
+                    aux++;
+                    i = tabela.length; 
+                }
+            }
+        }
+
+        // Copia apenas os elementos válidos para ordenar e imprimir
+        Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
+        ordenarTituloInsercao(tabelaOrdenada);
+        for (int i = 0; i < tabelaOrdenada.length; i++) {
+            tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+        }
+
+        long fim = System.nanoTime();
+        double tempo = (fim - inicio) / 1e6; // tempo em milissegundos
+
+        // Criar arquivo de log
+        try {
+            PrintWriter log = new PrintWriter("865235_insercao.txt");
+            log.printf("865235\t%.3f\t%d\n", tempo, comparacoes);
+            log.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao escrever o log");
+        }
+    }
+    */
+//endregion
+
+//region mainQ9
 public static void main(String[] args) {
 
     Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
@@ -326,7 +471,7 @@ public static void main(String[] args) {
 
     // Copia apenas os elementos válidos para ordenar e imprimir
     Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
-    ordenarTitulos(tabelaOrdenada);
+    ordenarHeap(tabelaOrdenada);
     for (int i = 0; i < tabelaOrdenada.length; i++) {
         tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
     }
@@ -336,7 +481,7 @@ public static void main(String[] args) {
 
     // Criar arquivo de log
     try {
-        PrintWriter log = new PrintWriter("865235_sequencial.txt");
+        PrintWriter log = new PrintWriter("865235_heap.txt");
         log.printf("865235\t%.3f\t%d\n", tempo, comparacoes);
         log.close();
     } catch (IOException e) {
@@ -345,4 +490,5 @@ public static void main(String[] args) {
 }
 
 //endregion
+
 }
