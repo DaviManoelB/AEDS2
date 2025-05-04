@@ -306,6 +306,127 @@ class Show{
         return maior;
     }
     //endregion
+    //region MERGESORT
+    public static class Contadores {
+        public long comparacoes = 0;
+        public long movimentacoes = 0;
+    }
+    
+    public static Comparator<Show> durationComparator(Contadores cont) {
+        return (a, b) -> {
+            int da = getDurationValue(a.getduration());
+            int db = getDurationValue(b.getduration());
+            cont.comparacoes++;
+            if (da != db) return Integer.compare(da, db);
+    
+            cont.comparacoes++;
+            return a.gettitle().compareToIgnoreCase(b.gettitle());
+        };
+    }
+    
+    public static int getDurationValue(String duration) {
+        try {
+            String[] parts = duration.split(" ");
+            return Integer.parseInt(parts[0]);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+    
+    public static void Sort(Show[] tabela) {
+        Contadores cont = new Contadores();
+        List<Show> lista = Arrays.asList(tabela);
+        long inicio = System.currentTimeMillis();
+        List<Show> ordenada = mergeSort(lista, durationComparator(cont), cont);
+        long fim = System.currentTimeMillis();
+    
+        
+        for (int i = 0; i < tabela.length; i++) {
+            tabela[i] = ordenada.get(i);
+        }
+    
+        escreverLog("865235_mergesort.txt", cont.comparacoes, cont.movimentacoes, fim - inicio);
+    }
+
+    public static List<Show> mergeSort(List<Show> lista, Comparator<Show> comp, Contadores cont) {
+        if (lista.size() <= 1) return lista;
+    
+        int meio = lista.size() / 2;
+        List<Show> esquerda = mergeSort(new ArrayList<>(lista.subList(0, meio)), comp, cont);
+        List<Show> direita = mergeSort(new ArrayList<>(lista.subList(meio, lista.size())), comp, cont);
+    
+        return merge(esquerda, direita, comp, cont);
+    }
+    public static List<Show> merge(List<Show> esq, List<Show> dir, Comparator<Show> comp, Contadores cont) {
+        List<Show> result = new ArrayList<>();
+        int i = 0, j = 0;
+    
+        while (i < esq.size() && j < dir.size()) {
+            cont.comparacoes++;
+            cont.movimentacoes++;
+            if (comp.compare(esq.get(i), dir.get(j)) <= 0) {
+                result.add(esq.get(i++));
+            } else {
+                result.add(dir.get(j++));
+            }
+        }
+    
+        while (i < esq.size()) {
+            cont.movimentacoes++;
+            result.add(esq.get(i++));
+        }
+    
+        while (j < dir.size()) {
+            cont.movimentacoes++;
+            result.add(dir.get(j++));
+        }
+    
+        return result;
+    }
+    //endregion
+
+    public static void selecaoParcial(Show[] tabela){
+        Show tmp;
+        
+        for(int i = 0; i < 10; i++) {
+            for(int j = i + 1; j < tabela.length; j++) {
+                if(tabela[i].title.toLowerCase().compareTo(tabela[j].title.toLowerCase()) > 0) {
+                    tmp = tabela[i];
+                    tabela[i] = tabela[j];
+                    tabela[j] = tmp;
+                }
+            }
+        }
+    }
+
+    public static void quickParcial(Show[] tabela, int esq, int dir) {
+        int i = esq, j = dir;
+        Show pivo = tabela[(esq + dir) / 2].clone();
+        while (i <= j) {
+            while (i <= dir && (
+                    formatDateISO(tabela[i].date_added).compareTo(formatDateISO(pivo.date_added)) < 0 ||
+                    (formatDateISO(tabela[i].date_added).compareTo(formatDateISO(pivo.date_added)) == 0 &&
+                     tabela[i].title.toLowerCase().compareTo(pivo.title.toLowerCase()) < 0))) {
+                i++;
+            }
+            while (j >= esq && (
+                    formatDateISO(tabela[j].date_added).compareTo(formatDateISO(pivo.date_added)) > 0 ||
+                    (formatDateISO(tabela[j].date_added).compareTo(formatDateISO(pivo.date_added)) == 0 &&
+                     tabela[j].title.toLowerCase().compareTo(pivo.title.toLowerCase()) > 0))) {
+                j--;
+            }
+            if (i <= j) {
+                Show tmp = tabela[i];
+                tabela[i] = tabela[j];
+                tabela[j] = tmp;
+                i++;
+                j--;
+            }
+        }
+        if (esq < j) quickParcial(tabela, esq, j);
+        if (i < 10 && i < dir) quickParcial(tabela, i, dir);
+    }
+    
 //endregion
 
     //--------------------------------------------------------Ler-------------------------------------------------------
@@ -360,7 +481,7 @@ class Show{
 
     //--------------------------------------------------------MAIN--------------------------------------------------------
 //region mainQ1
-    /*
+    /* */
     public static void main(String[] args) {
 
         Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
@@ -391,7 +512,7 @@ class Show{
         }
         sc.close(); 
     }
-     */
+    
 //endregion
 
 //region mainQ3 
@@ -586,7 +707,7 @@ public static void main(String[] args) {
 //endregion
 
 //region mainQ11
-/* */
+/*
     public static void main(String[] args) {
 
         Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
@@ -627,7 +748,146 @@ public static void main(String[] args) {
             tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
         }
     }
+    */ 
 //endregion
+
+//region mainQ13
+    /* 
+    public static void main(String[] args) {
+
+        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+        int aux = 0;
+
+        try {
+            tabela = ler();
+        } catch (Exception e) {
+            System.out.println("Erro em usar o metodo ler");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String id = new String();
+        Show[] tabela2 = new Show[tabela.length];
+
+        while(sc.hasNext()){
+            id = sc.nextLine(); //le o id a ser printado
+
+            if(id.equals("FIM")) {
+                sc.close();
+                break; // fim do loop
+            }
+
+            for (int i = 0; i < tabela.length; i++) {
+                if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
+                    tabela2[aux] = tabela[i].clone();
+                    aux++;
+                    i = tabela.length; 
+                }
+            }
+        }
+
+        // Copia apenas os elementos válidos para ordenar e imprimir
+        Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
+        Sort(tabelaOrdenada);
+        for (int i = 0; i < tabelaOrdenada.length; i++) {
+            tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+        }
+    }
+    */
+//endregion
+
+//region main Q15
+    /* 
+    public static void main(String[] args) {
+
+        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+        int aux = 0;
+
+        try {
+            tabela = ler();
+        } catch (Exception e) {
+            System.out.println("Erro em usar o metodo ler");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String id = new String();
+        Show[] tabela2 = new Show[tabela.length];
+
+        while(sc.hasNext()){
+            id = sc.nextLine(); //le o id a ser printado
+
+            if(id.equals("FIM")) {
+                sc.close();
+                break; // fim do loop
+            }
+
+            for (int i = 0; i < tabela.length; i++) {
+                if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
+                    tabela2[aux] = tabela[i].clone();
+                    aux++;
+                    i = tabela.length; 
+                }
+            }
+        }
+
+        // Copia apenas os elementos válidos para ordenar e imprimir
+        Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
+        selecaoParcial(tabelaOrdenada);
+        for(int i = 0; i < 10; i++) {
+            tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+        }
+    }
+    */
+//endregion
+
+//region Q18
+    /* 
+    public static void main(String[] args) {
+
+        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
+        int aux = 0;
+
+        try {
+            tabela = ler();
+        } catch (Exception e) {
+            System.out.println("Erro em usar o metodo ler");
+            return;
+        }
+
+        Scanner sc = new Scanner(System.in);
+        String id = new String();
+        Show[] tabela2 = new Show[tabela.length];
+
+        while(sc.hasNext()){
+            id = sc.nextLine(); //le o id a ser printado
+
+            if(id.equals("FIM")) {
+                sc.close();
+                break; // fim do loop
+            }
+
+            for (int i = 0; i < tabela.length; i++) {
+                if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
+                    tabela2[aux] = tabela[i].clone();
+                    aux++;
+                    i = tabela.length; 
+                }
+            }
+        }
+
+        // Copia apenas os elementos válidos para ordenar e imprimir
+        Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
+        int tmp = tabelaOrdenada.length;
+        quickParcial(tabelaOrdenada, 0, (tmp - 1));
+        for(int i = 0; i < 10; i++) {
+            tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+        }
+    }
+    */
+//endregion
+
+
 
     //--------------------------------------------------------ARQUIVO LOG--------------------------------------------------------
     public static void escreverLog(String nomeArquivo, long comparacoes, long movimentacoes, long tempo) {
@@ -636,6 +896,28 @@ public static void main(String[] args) {
         } catch (IOException e) {
             System.err.println("Erro ao escrever no log: " + e.getMessage());
         }
+    }
+    
+    public static String formatDateISO(String data) {
+        String[] meses = {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        };
+    
+        String[] partes = data.replace(",", "").split(" ");
+        int mes = 0;
+        for (int i = 0; i < meses.length; i++) {
+            if (meses[i].equalsIgnoreCase(partes[0])) {
+                mes = i + 1;
+                break;
+            }
+        }
+    
+        String dia = partes[1];
+        if (dia.length() == 1) dia = "0" + dia;
+        String mesStr = (mes < 10 ? "0" + mes : Integer.toString(mes));
+    
+        return partes[2] + "-" + mesStr + "-" + dia;
     }
 }
 
