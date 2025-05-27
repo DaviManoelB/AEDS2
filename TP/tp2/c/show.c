@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
-#define MAX_LINE 1024 //limita o tamanho da linha
+#define MAX_LINE 1024
 #define MAX_STRING 200
 #define MAX_LIST 20
+#define MAX_SHOWS 1370
 
-typedef struct { //criação da struct Show
+// Struct Show
+typedef struct {
     char show_id[MAX_STRING];
     char type[MAX_STRING];
     char title[MAX_STRING];
@@ -29,8 +32,8 @@ void handle_empty(char *field) {
 }
 
 void sort_list(char list[][MAX_STRING], int size) {
-    for (int i = 0; i < size-1; i++) {
-        for (int j = i+1; j < size; j++) {
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = i + 1; j < size; j++) {
             if (strcmp(list[i], list[j]) > 0) {
                 char temp[MAX_STRING];
                 strcpy(temp, list[i]);
@@ -41,7 +44,7 @@ void sort_list(char list[][MAX_STRING], int size) {
     }
 }
 
-int split(char *field, char list[][MAX_STRING]) { 
+int split(char *field, char list[][MAX_STRING]) {
     int count = 0;
     char *token = strtok(field, ",");
     while (token != NULL && count < MAX_LIST) {
@@ -53,13 +56,12 @@ int split(char *field, char list[][MAX_STRING]) {
     return count;
 }
 
-// Função para remover aspas duplas internas
 void remove_aspas(char *str) {
     char *src = str, *dst = str;
     while (*src) {
         if (*src == '"' && *(src + 1) == '"') {
-            src += 2; // pula as aspas duplas
-            *dst++ = '"'; // mantém uma aspas, ou remova se quiser ignorar
+            src += 2;
+            *dst++ = '"';
         } else {
             *dst++ = *src++;
         }
@@ -67,7 +69,6 @@ void remove_aspas(char *str) {
     *dst = '\0';
 }
 
-// Função para extrair os primeiros 12 campos respeitando aspas
 void categorias(char *line, char *fields[12]) {
     int i = 0;
     char *start = line;
@@ -75,7 +76,7 @@ void categorias(char *line, char *fields[12]) {
         if (*start == '"') {
             start++;
             fields[i++] = start;
-            while (*start && !(*start == '"' && (*(start+1) == ',' || *(start+1) == '\0'))) start++;
+            while (*start && !(*start == '"' && (*(start + 1) == ',' || *(start + 1) == '\0'))) start++;
             *start = '\0';
             start += 2;
         } else {
@@ -89,18 +90,18 @@ void categorias(char *line, char *fields[12]) {
     }
 }
 
-void parse_show(char *line, Show *s) { 
+void parse_show(char *line, Show *s) {
     char *fields[12];
     categorias(line, fields);
 
     strcpy(s->show_id, fields[0]);
     strcpy(s->type, fields[1]);
 
-    remove_aspas(fields[2]); 
+    remove_aspas(fields[2]);
     strcpy(s->title, fields[2]);
 
     remove_aspas(fields[3]);
-    strcpy(s->director, fields[3]); 
+    strcpy(s->director, fields[3]);
     handle_empty(s->director);
 
     remove_aspas(fields[4]);
@@ -111,14 +112,14 @@ void parse_show(char *line, Show *s) {
         s->cast_size = split(fields[4], s->cast);
     }
 
-    strcpy(s->country, fields[5]); 
+    strcpy(s->country, fields[5]);
     handle_empty(s->country);
-    strcpy(s->date_added, fields[6]); 
+    strcpy(s->date_added, fields[6]);
     handle_empty(s->date_added);
     s->release_year = atoi(fields[7]);
-    strcpy(s->rating, fields[8]); 
+    strcpy(s->rating, fields[8]);
     handle_empty(s->rating);
-    strcpy(s->duration, fields[9]); 
+    strcpy(s->duration, fields[9]);
     handle_empty(s->duration);
 
     remove_aspas(fields[10]);
@@ -130,52 +131,108 @@ void parse_show(char *line, Show *s) {
     }
 }
 
-void imprimir(Show *s) {
-    printf("=> %s ## %s ## %s ## %s ## [", s->show_id, s->title, s->type, s->director);
-    for (int i = 0; i < s->cast_size; i++) {
-        printf("%s", s->cast[i]);
-        if (i < s->cast_size - 1) printf(", ");
-    }
-    printf("] ## %s ## %s ## %d ## %s ## %s ## [", s->country, s->date_added, s->release_year, s->rating, s->duration);
-    for (int i = 0; i < s->listed_in_size; i++) {
-        printf("%s", s->listed_in[i]);
-        if (i < s->listed_in_size - 1) printf(", ");
-    }
-    printf("] ##\n");
-}
-
-int main() {
-    char input[20];
-    //FILE *fp = fopen("../disneyplus.csv", "r");
-    FILE *fp = fopen("/tmp/disneyplus.csv", "r"); 
-    if (!fp) {
-        printf("Erro ao abrir o arquivo.\n");
-        return 1;
-    }
+int lerTodosOsShows(Show todos[]) {
+    FILE *fp = fopen("../disneyplus.csv", "r");
+    if (!fp) return 0;
 
     char line[MAX_LINE];
+    int count = 0;
+
     fgets(line, MAX_LINE, fp); // pula cabeçalho
 
-    while (scanf("%s", input) && strcmp(input, "FIM") != 0) {
-        rewind(fp);
-        fgets(line, MAX_LINE, fp); // pula cabeçalho de novo
-        int found = 0;
-
-        while (fgets(line, MAX_LINE, fp)) {
-            if (strncmp(line, input, strlen(input)) == 0) {
-                Show s;
-                parse_show(line, &s);
-                imprimir(&s);
-                found = 1;
-                break;
-            }
-        }
-
-        if (!found) {
-            printf("Show ID %s não encontrado.\n", input);
-        }
+    while (fgets(line, MAX_LINE, fp) && count < MAX_SHOWS) {
+        line[strcspn(line, "\r\n")] = 0;
+        parse_show(line, &todos[count++]);
     }
 
     fclose(fp);
+    return count;
+}
+
+void ordenarShowsPorTitulo(Show arr[], int n, long *comp, long *mov) {
+    for (int i = 0; i < n - 1; i++) {
+        int menor = i;
+        for (int j = i + 1; j < n; j++) {
+            (*comp)++;
+            if (strcmp(arr[j].title, arr[menor].title) < 0) {
+                menor = j;
+            }
+        }
+        if (menor != i) {
+            Show temp = arr[i];
+            arr[i] = arr[menor];
+            arr[menor] = temp;
+            (*mov) += 3;
+        }
+    }
+}
+
+int buscarTituloPorBinaria(Show arr[], int n, const char *titulo, long *comp) {
+    int esq = 0, dir = n - 1;
+    while (esq <= dir) {
+        int meio = (esq + dir) / 2;
+        (*comp)++;
+        int cmp = strcmp(titulo, arr[meio].title);
+        if (cmp == 0) return 1;
+        else if (cmp < 0) dir = meio - 1;
+        else esq = meio + 1;
+    }
+    return 0;
+}
+
+void gerarLogDesempenho(const char *nomeArquivo, long comparacoes, long movimentacoes, long tempo) {
+    FILE *fp = fopen(nomeArquivo, "w");
+    if (fp != NULL) {
+        fprintf(fp, "865235\t%ld\t%ld\t%ld\n", comparacoes, movimentacoes, tempo);
+        fclose(fp);
+    }
+}
+
+int main() {
+    Show todos[MAX_SHOWS];
+    Show selecionados[MAX_SHOWS];
+    int selecionadosCount = 0;
+    char linha[200];
+    long comparacoes = 0, movimentacoes = 0;
+    clock_t inicio, fim;
+    long tempo;
+
+    int total = lerTodosOsShows(todos);
+    if (total == 0) {
+        printf("Erro ao ler os dados\n");
+        return 1;
+    }
+
+    while (fgets(linha, sizeof(linha), stdin)) {
+        linha[strcspn(linha, "\n")] = '\0';
+        if (strcmp(linha, "FIM") == 0) break;
+
+        for (int i = 0; i < total; i++) {
+            comparacoes++;
+            if (strcmp(todos[i].show_id, linha) == 0) {
+                selecionados[selecionadosCount++] = todos[i];
+                break;
+            }
+        }
+    }
+
+    inicio = clock();
+    ordenarShowsPorTitulo(selecionados, selecionadosCount, &comparacoes, &movimentacoes);
+    fim = clock();
+    tempo = ((long)(fim - inicio) * 1000) / CLOCKS_PER_SEC;
+
+    printf("NAO\n");
+    while (fgets(linha, sizeof(linha), stdin)) {
+        linha[strcspn(linha, "\n")] = '\0';
+        if (strcmp(linha, "FIM") == 0) break;
+
+        if (buscarTituloPorBinaria(selecionados, selecionadosCount, linha, &comparacoes)) {
+            printf("SIM\n");
+        } else {
+            printf("NAO\n");
+        }
+    }
+
+    gerarLogDesempenho("865235_binaria.txt", comparacoes, movimentacoes, tempo);
     return 0;
 }

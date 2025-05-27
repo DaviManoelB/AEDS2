@@ -307,82 +307,63 @@ class Show{
     }
     //endregion
     //region MERGESORT
-    public static class Contadores {
-        public long comparacoes = 0;
-        public long movimentacoes = 0;
-    }
-    
-    public static Comparator<Show> durationComparator(Contadores cont) {
+    public static Comparator<Show> durationLexComparator(int[] comps) {
         return (a, b) -> {
-            int da = getDurationValue(a.getduration());
-            int db = getDurationValue(b.getduration());
-            cont.comparacoes++;
-            if (da != db) return Integer.compare(da, db);
+            comps[0]++;
+            String durA = a.getduration() == null ? "" : a.getduration().toLowerCase();
+            String durB = b.getduration() == null ? "" : b.getduration().toLowerCase();
     
-            cont.comparacoes++;
-            return a.gettitle().compareToIgnoreCase(b.gettitle());
+            int cmp = durA.compareTo(durB);
+            if (cmp != 0) return cmp;
+    
+            comps[0]++;
+            return a.gettitle().toLowerCase().compareTo(b.gettitle().toLowerCase());
         };
     }
     
-    public static int getDurationValue(String duration) {
-        try {
-            String[] parts = duration.split(" ");
-            return Integer.parseInt(parts[0]);
-        } catch (Exception e) {
-            return 0;
+    public static void mergeSort(List<Show> lista, int[] comps, int[] movs) {
+        if (lista == null || lista.size() <= 1) return;
+        mergeSort(lista, 0, lista.size() - 1, durationLexComparator(comps), comps, movs);
+    }
+    
+    private static void mergeSort(List<Show> lista, int inicio, int fim, Comparator<Show> comp, int[] comps, int[] movs) {
+        if (inicio < fim) {
+            int meio = (inicio + fim) / 2;
+            mergeSort(lista, inicio, meio, comp, comps, movs);
+            mergeSort(lista, meio + 1, fim, comp, comps, movs);
+            merge(lista, inicio, meio, fim, comp, movs);
         }
     }
     
-    public static void Sort(Show[] tabela) {
-        Contadores cont = new Contadores();
-        List<Show> lista = Arrays.asList(tabela);
-        long inicio = System.currentTimeMillis();
-        List<Show> ordenada = mergeSort(lista, durationComparator(cont), cont);
-        long fim = System.currentTimeMillis();
+    private static void merge(List<Show> lista, int inicio, int meio, int fim, Comparator<Show> comp, int[] movs) {
+        List<Show> temp = new ArrayList<>();
+        int i = inicio, j = meio + 1;
     
-        
-        for (int i = 0; i < tabela.length; i++) {
-            tabela[i] = ordenada.get(i);
-        }
-    
-        escreverLog("865235_mergesort.txt", cont.comparacoes, cont.movimentacoes, fim - inicio);
-    }
-
-    public static List<Show> mergeSort(List<Show> lista, Comparator<Show> comp, Contadores cont) {
-        if (lista.size() <= 1) return lista;
-    
-        int meio = lista.size() / 2;
-        List<Show> esquerda = mergeSort(new ArrayList<>(lista.subList(0, meio)), comp, cont);
-        List<Show> direita = mergeSort(new ArrayList<>(lista.subList(meio, lista.size())), comp, cont);
-    
-        return merge(esquerda, direita, comp, cont);
-    }
-    public static List<Show> merge(List<Show> esq, List<Show> dir, Comparator<Show> comp, Contadores cont) {
-        List<Show> result = new ArrayList<>();
-        int i = 0, j = 0;
-    
-        while (i < esq.size() && j < dir.size()) {
-            cont.comparacoes++;
-            cont.movimentacoes++;
-            if (comp.compare(esq.get(i), dir.get(j)) <= 0) {
-                result.add(esq.get(i++));
+        while (i <= meio && j <= fim) {
+            if (comp.compare(lista.get(i), lista.get(j)) <= 0) {
+                temp.add(lista.get(i++));
             } else {
-                result.add(dir.get(j++));
+                temp.add(lista.get(j++));
             }
+            movs[0]++;
         }
     
-        while (i < esq.size()) {
-            cont.movimentacoes++;
-            result.add(esq.get(i++));
+        while (i <= meio) {
+            temp.add(lista.get(i++));
+            movs[0]++;
         }
     
-        while (j < dir.size()) {
-            cont.movimentacoes++;
-            result.add(dir.get(j++));
+        while (j <= fim) {
+            temp.add(lista.get(j++));
+            movs[0]++;
         }
     
-        return result;
+        for (int k = 0; k < temp.size(); k++) {
+            lista.set(inicio + k, temp.get(k));
+            movs[0]++;
+        }
     }
+    
     //endregion
 
     public static void selecaoParcial(Show[] tabela){
@@ -403,17 +384,37 @@ class Show{
         int i = esq, j = dir;
         Show pivo = tabela[(esq + dir) / 2].clone();
         while (i <= j) {
-            while (i <= dir && (
-                    formatDateISO(tabela[i].date_added).compareTo(formatDateISO(pivo.date_added)) < 0 ||
-                    (formatDateISO(tabela[i].date_added).compareTo(formatDateISO(pivo.date_added)) == 0 &&
-                     tabela[i].title.toLowerCase().compareTo(pivo.title.toLowerCase()) < 0))) {
-                i++;
+            while (i <= dir) {
+                try {
+                    int cmpDate = formatDateISO(tabela[i].date_added).compareTo(formatDateISO(pivo.date_added));
+                    if (cmpDate < 0 || (cmpDate == 0 && tabela[i].title.toLowerCase().compareTo(pivo.title.toLowerCase()) < 0)) {
+                        i++;
+                    } else {
+                        break;
+                    }
+                } catch (Exception e) {
+                    if (tabela[i].title.toLowerCase().compareTo(pivo.title.toLowerCase()) < 0) {
+                        i++;
+                    } else {
+                        break;
+                    }
+                }
             }
-            while (j >= esq && (
-                    formatDateISO(tabela[j].date_added).compareTo(formatDateISO(pivo.date_added)) > 0 ||
-                    (formatDateISO(tabela[j].date_added).compareTo(formatDateISO(pivo.date_added)) == 0 &&
-                     tabela[j].title.toLowerCase().compareTo(pivo.title.toLowerCase()) > 0))) {
-                j--;
+            while (j >= esq) {
+                try {
+                    int cmpDate = formatDateISO(tabela[j].date_added).compareTo(formatDateISO(pivo.date_added));
+                    if (cmpDate > 0 || (cmpDate == 0 && tabela[j].title.toLowerCase().compareTo(pivo.title.toLowerCase()) > 0)) {
+                        j--;
+                    } else {
+                        break;
+                    }
+                } catch (Exception e) {
+                    if (tabela[j].title.toLowerCase().compareTo(pivo.title.toLowerCase()) > 0) {
+                        j--;
+                    } else {
+                        break;
+                    }
+                }
             }
             if (i <= j) {
                 Show tmp = tabela[i];
@@ -481,7 +482,7 @@ class Show{
 
     //--------------------------------------------------------MAIN--------------------------------------------------------
 //region mainQ1
-    /* */
+    /* 
     public static void main(String[] args) {
 
         Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
@@ -512,7 +513,7 @@ class Show{
         }
         sc.close(); 
     }
-    
+    */
 //endregion
 
 //region mainQ3 
@@ -754,49 +755,44 @@ public static void main(String[] args) {
 //region mainQ13
     /* 
     public static void main(String[] args) {
-
-        Show[] tabela = new Show[1370]; //cria um vetor para cadastrar no sistema todos os shows
-        int aux = 0;
-
+        Show[] tabela; 
         try {
             tabela = ler();
         } catch (Exception e) {
             System.out.println("Erro em usar o metodo ler");
             return;
         }
-
         Scanner sc = new Scanner(System.in);
-        String id = new String();
-        Show[] tabela2 = new Show[tabela.length];
-
-        while(sc.hasNext()){
-            id = sc.nextLine(); //le o id a ser printado
-
-            if(id.equals("FIM")) {
-                sc.close();
-                break; // fim do loop
+        ArrayList<Show> escolhidos = new ArrayList<>();
+        while (sc.hasNext()) {
+            String id = sc.nextLine();
+            if (id.equals("FIM")) {
+                break;
             }
-
             for (int i = 0; i < tabela.length; i++) {
-                if((tabela[i] != null) && (id.equals(tabela[i].getShowId()))){
-                    tabela2[aux] = tabela[i].clone();
-                    aux++;
-                    i = tabela.length; 
+                if (tabela[i] != null && id.equals(tabela[i].getShowId())) {
+                    escolhidos.add(tabela[i].clone());
+                    break; 
                 }
             }
         }
-
-        // Copia apenas os elementos válidos para ordenar e imprimir
-        Show[] tabelaOrdenada = Arrays.copyOf(tabela2, aux);
-        Sort(tabelaOrdenada);
-        for (int i = 0; i < tabelaOrdenada.length; i++) {
-            tabelaOrdenada[i].imprimir(tabelaOrdenada[i]);
+        sc.close();
+        // Ordenar usando o novo mergeSort
+        int[] comps = new int[1];
+        int[] movs = new int[1];
+        long inicio = System.currentTimeMillis();
+        mergeSort(escolhidos, comps, movs);
+        long fim = System.currentTimeMillis();
+        // Imprimir resultados
+        for (Show s : escolhidos) {
+            s.imprimir(s);
         }
+        escreverLog("865235_mergesort.txt", comps[0], movs[0], fim - inicio);
     }
     */
 //endregion
 
-//region main Q15
+//region mainQ15
     /* 
     public static void main(String[] args) {
 
@@ -841,7 +837,7 @@ public static void main(String[] args) {
     */
 //endregion
 
-//region Q18
+//region mainQ18
     /* 
     public static void main(String[] args) {
 
