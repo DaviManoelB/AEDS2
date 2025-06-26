@@ -35,5 +35,6 @@ public class espelho{
             //str = str + inicio + '\0';
             System.out.println(str);
         }
+        sc.close();
     }
 }

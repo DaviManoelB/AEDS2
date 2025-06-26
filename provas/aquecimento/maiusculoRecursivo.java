@@ -25,6 +25,7 @@ public class maiusculoRecursivo{
             contagem(frase,tam,resp);
 
         }
+        sc.close();
 
     }
     public static void contagem(String frase,int tam,int resp){

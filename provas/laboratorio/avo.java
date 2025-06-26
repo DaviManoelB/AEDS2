@@ -15,9 +15,7 @@ import java.util.*;
 
 public class avo{
     public static void main(String[] args){
-        
-        
-        
+            
         Scanner sc = new Scanner(System.in);
         while(sc.hasNext()){
             int n, m, tmp, maior = 0, segundo = 0;
@@ -54,5 +52,6 @@ public class avo{
             }
             System.out.println(resp);
         }
+        sc.close();
     }
 }
